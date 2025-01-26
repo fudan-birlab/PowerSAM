@@ -20,7 +20,7 @@ from mmdet.evaluation import get_classes
 from mmdet.structures import DetDataSample, SampleList
 
 
-def init_detector(
+def init_box_prompt_generator(
     config: Union[str, Path, Config],
     checkpoint: Optional[str] = None,
     palette: str = 'none',
@@ -116,7 +116,7 @@ def init_detector(
 ImagesType = Union[str, np.ndarray, Sequence[str], Sequence[np.ndarray]]
 
 
-def inference_detector(
+def inference_box_prompt_generator(
     model: nn.Module,
     imgs: ImagesType = None,
     features: list = None,

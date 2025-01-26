@@ -49,10 +49,71 @@ pip install -r requirements.txt
 pip install -e .
 ```
 
-## Getting Started
+## Getting Started with PowerSAM
 
+### Demo
 To get started with PowerSAM, you can follow the example provided in the [Getting Started with PowerSAM](notebooks/powersam_demo.ipynb). This notebook demonstrates how to use the PowerSAM model for segmentation in power system scenarios.
 
+**Note:** Please download the weights of PowerSAM first and place them in the appropriate directory:
+```sh
+mkdir weights
+wget https://github.com/fudan-birlab/PowerSAM/releases/download/v0.1.0/powersam_b.pth -O weights/powersam_b.pth
+wget https://github.com/fudan-birlab/PowerSAM/releases/download/v0.1.0/powersam_s.pth -O weights/powersam_s.pth
+wget https://github.com/fudan-birlab/PowerSAM/releases/download/v0.1.0/box_prompt_generator_repvit_epoch_300.pth -O weights/box_prompt_generator_repvit_epoch_300.pth
+```
+
+### Inference Example
+First, initiating the PowerSAM and bounding box prompt generator respectively:
+```sh
+from power_sam import sam_model_registry, SamPredictor
+from box_prompt_generator.apis import init_box_prompt_generator, inference_box_prompt_generator
+
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
+sam = sam_model_registry["power_sam"](checkpoint="weights/powersam_s.pth", arch="m0").to(device=device)
+predictor = SamPredictor(sam)
+
+bbox_prompt_generator = init_box_prompt_generator(
+    '../box_prompt_generator/configs/box_prompt_generator/self_s_repvit_m0.py',
+    '../weights/box_prompt_generator_repvit_epoch_300.pth',
+    device=device
+)
+```
+
+Second, following the steps below to predict mask:
+```sh
+image = cv2.imread(image_path)
+image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
+result, feats = inference_box_prompt_generator(bbox_prompt_generator, image, return_feats=True)
+bbox_prompts = result.pred_instances
+bboxes = bbox_prompts.bboxes
+bbox_labels = bbox_prompts.labels
+bbox_scores = bbox_prompts.scores
+
+predictor.original_size = image.shape[:2]
+predictor.input_size = predictor.transform.get_preprocess_shape(image.shape[0], image.shape[1], predictor.transform.target_length)
+predictor.is_image_set = True
+transformed_boxes = predictor.transform.apply_boxes_torch(bboxes, image.shape[:2])
+masks, _, _ = predictor.predict_torch(
+    feats[-1] if feats[-1].shape[-2:] == (64, 64)
+    else torch.nn.functional.interpolate(feats[-1], (64, 64), mode="bilinear"),
+    point_coords=None,
+    point_labels=None,
+    boxes=transformed_boxes,
+    num_multimask_outputs=1,
+)
+```
+
+## Training
+
+First, the training and validation datasets of SAM should be prepared like [SA-1B Dataset](https://ai.meta.com/datasets/segment-anything/), and the datasets of bounding box prompt generator should be prepared like [MMDetection](https://mmdetection.readthedocs.io/en/latest/user_guides/dataset_prepare.html).
+
+To train the PowerSAM, you should download [teacher model weights](https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth), and move it into `weight/` folder.
+
+Distilling backbone, mask decoder and bounding box prompt generator.
+```sh
+bash training_all_stages.sh
+```
 
 ## Acknowledgement
 
@@ -62,3 +123,5 @@ We would like to acknowledge the following projects and their contributions to t
 - **[SAM2](https://github.com/facebookresearch/segment-anything)** with [Apache License](https://github.com/facebookresearch/segment-anything/blob/main/LICENSE)
 - **[SlimSAM](https://github.com/czg1225/SlimSAM)** with [Apache License](https://github.com/czg1225/SlimSAM/blob/master/LICENSE)
 - **[EdgeSAM](https://github.com/chongzhou96/EdgeSAM)** with [S-Lab License 1.0](https://github.com/chongzhou96/EdgeSAM/blob/master/LICENSE)
+- **[MMDetection](https://github.com/open-mmlab/mmdetection)** with [Apache License](https://github.com/open-mmlab/mmdetection/blob/main/LICENSE)
+- **[YOLOX](https://github.com/Megvii-BaseDetection/YOLOX)** with [Apache License](https://github.com/Megvii-BaseDetection/YOLOX/blob/main/LICENSE)

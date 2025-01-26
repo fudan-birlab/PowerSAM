@@ -1,0 +1,26 @@
+MODEL:
+  TYPE: rep_vit_m1
+  PRETRAINED: weights/repvit_m0_9_distill_300e.pth
+
+TRAIN:
+  EPOCHS: 100
+  BASE_LR: 1.0e-1
+  WARMUP_EPOCHS: 5
+  WEIGHT_DECAY: 0.01
+  FIND_UNUSED_PARAMETERS: False
+SAVE_FREQ: 10
+
+DATA:
+  IMG_SIZE: 1024
+  MEAN_AND_STD_TYPE: default
+  DATASET: sa1b
+  DATA_PATH: datasets/substation_equipment/
+
+DISTILL:
+  EMBED_DIM: 256
+  TEACHER_EMBED_PATH: teacher_embed/substation_equipment_slimsam50se_240927/
+  NO_RAND: True
+  FUSE: True
+  PIXEL_WISE: 1.0
+
+AMP_ENABLE: False
