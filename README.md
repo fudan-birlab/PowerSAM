@@ -1,13 +1,18 @@
 # PowerSAM: Edge-Efficient Segment Anything for Power Systems Through Visual Model Distillation
 
-[ [Paper](https://github.com/fudan-birlab/PowerSAM) ] [ [Project Page](https://github.com/fudan-birlab/PowerSAM) ]
+[ [Paper](https://github.com/fudan-birlab/PowerSAM) ] [ [Project Page](https://fudan-birlab.github.io/PowerSAM/) ]
 
 Authors: Nannan Yan, Yuhao Li, Yingke Mao, Xiao Yu, Wenhao Guan, Jiawei Hou and
 Taiping Zeng
 
-![Realtime SAM](figs/realtime_sam.png)
+![Realtime SAM](figs/fig-toppic.png)
 
 **Tl;dr** PowerSAM is proposed as a real-time semantic segmentation framework for edge devices, addressing the challenges of power system equipment inspection, including labor intensity, costs, and human error. By leveraging knowledge distillation from large models to compact backbones and integrating a bounding box prompt generator with a segmentation model, PowerSAM significantly reduces computational complexity while maintaining high segmentation accuracy.
+
+<div style="display: flex; justify-content: space-between;">
+  <img src="figs/pred_1.png" alt="Image 1" style="width: 48%;">
+  <img src="figs/pred_2.png" alt="Image 2" style="width: 48%;">
+</div>
 
 ## Installation
 
